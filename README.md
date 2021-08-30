@@ -1,4 +1,4 @@
-# Ad_cllick_Analysis
+# Ad_click_Analysis
 #### {Cleaning_with R}, {30/08/2021}
 #### By MILDRED KULEI
 ## Description
