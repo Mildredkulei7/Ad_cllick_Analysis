@@ -1,0 +1,340 @@
+---
+title: "ip_week12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# **AD CLICK ANALYSIS**
+# Defining the Question
+## 1. Specifying the Question
+### Which individuals are most likely to click on an online cryptography course advertisement?
+
+## 2. Metric for success
+### Come up with an analysis that will make our customer identify individuals who are likely to click on her cryptography course.
+
+## 3. Understanding the Context
+### A Kenyan entrepreneur has created an online cryptography course and would want to advertise it on her blog. She currently targets audiences originating from various countries. In the past, she ran ads to advertise a related course on the same blog and collected data in the process. She would now like to employ your services as a Data Science Consultant to help her identify which individuals are most likely to click on her ads.
+
+## 4. Experimental Design taken
+1. Data Exploration
+2. Data Cleaning 
+3. Univariate Analysis
+4. Bivariate Analysis
+5. Conclusion 
+
+## 5. Appropriateness data 
+### Our data was readily available as it was provided by the client...Thus data collection was not needed.
+
+# 1. Data Exploration
+## Loading the data
+## Loading the necessary packages
+``` {r}
+library("data.table")
+advert <- read.csv("advertising.csv")
+
+##Previewing the first 6 rows of dataset
+
+head(advert)
+
+##Previewing the last 6 rows of dataset
+
+tail(advert)
+
+##Basic structure of the data
+str(advert)
+```
+
+# 2. Data Cleaning 
+## Tidying the dataset the dataset
+
+``` {r}
+# Identifying duplicates
+advert[duplicated(advert), ]
+
+##There are no duplicates in this dataset.
+
+## Identifying missing data
+length(which(!is.na(advert)))
+#
+##checking the missing data
+colSums(is.na(advert))
+
+##There is no missing data
+```
+## Checking for outliers
+
+``` {r}
+boxplot.stats(advert$`Daily Time Spent on Site`)$out
+
+boxplot.stats(advert$Age)$out
+
+boxplot.stats(advert$`Area Income`)$out
+
+boxplot.stats(advert$`Daily Internet Usage`)$out
+
+boxplot.stats(advert$`Clicked on Ad`)$out
+```
+
+``` {r}
+numeric_cols <- unlist(lapply(advert, is.numeric)) 
+numeric_cols
+
+boxplot(numeric_cols)
+``` 
+we do not have outliers.
+
+## checking for anomalies
+Anomalies are inconsistencies in the data
+
+``` {r}
+###Checking the number of unique values in each column
+lengths(lapply(advert, unique))
+str(advert)
+```
+
+# 3. Univariate Analysis
+## checking the means of all our numerical values
+
+``` {r}
+# Summary of the dataset
+summary(advert)
+```
+
+``` {r}
+# Getting the time period of the data
+range(advert$Timestamp)
+```
+
+### Getting variance and std.deviation of Daily time spent on site
+
+``` {r}
+advert.daily.variance <- var(advert$Daily.Time.Spent.on.Site)
+advert.daily.variance
+```
+
+``` {r}
+#checking the datatypes on the columns 
+sapply(advert, class)
+```
+
+``` {r}
+# Getting variance and std.deviation of Area Income
+
+var(advert$Area.Income)
+```
+
+``` {r}
+##the timestamp has  a wrong data type so we will need to convert it to datetime
+advert$Timestamp <- as.POSIXct(advert$Timestamp, "%Y-%m-%d %H:%M:%S",tz = "GMT")
+
+### Checking if change has been effected
+sapply(advert, class)
+```
+
+``` {r}
+summary(advert)
+```
+
+
+### Getting variance and std.deviation of Daily time spent on site
+``` {r}
+var(advert$Daily.Time.Spent.on.Site)
+
+sd(advert$Daily.Time.Spent.on.Site)
+```
+
+``` {r}
+# Getting variance and std.deviation of Area Income
+
+var(advert$Area.Income)
+
+sd(advert$Area.Income)
+```
+
+``` {r}
+# Getting variance and std.deviation of Daily Internet Usage
+sd(advert$Daily.Internet.Usage)
+
+var(advert$Daily.Internet.Usage)
+```
+
+``` {r}
+# Function to get mode
+mode <- function(v){
+  uniq <- unique(as.integer(v))
+  uniq[which.max(tabulate(match(as.integer(v), uniq)))]
+}
+```
+
+``` {r}
+# Mode of daily time spent on site
+daily.site <- mode(advert$Daily.Time.Spent.on.Site)
+daily.site
+```
+Alot of people spend 78 minutes browsing on the site.
+
+``` {r}
+# Getting the mode of the age
+age.mode <- mode(advert$Age)
+age.mode
+```
+
+Most people on the site are age 31
+``` {r}
+# Distribution of the genders
+gender <- advert$Male
+gen <- table(gender)
+barplot(gen, main = "Gender Distribution", ylab = "Distribution")
+```
+
+Females browsing on the site are more than males by a small percantage.
+``` {r}
+# Distribution of whether one clicked or did not click on an ad
+click <- advert$Clicked.on.Ad
+clicked <- table(click)
+barplot(clicked, main = "Ad Click Distribution", ylab = "Distribution")
+```
+
+There is a 50% chance that someone will click on the add while browsing the internet.
+``` {r}
+area_income_mode<- mode((advert$Area.Income))
+area_income_mode
+```
+
+``` {r}
+internetusage_mode<- mode(advert$Daily.Internet.Usage)
+internetusage_mode
+```
+### range
+``` {r}
+range(advert$Age)
+```
+
+people browsing the internet are between ages 19 an 61.
+
+``` {r}
+# ad clicked per country
+country_ad <- table(advert$Country, advert$Clicked.on.Ad)
+names(dimnames(country_ad)) <- c("Country", "Clicked on Ad")
+country_ad
+```
+
+People from Australia, Ethopia, turkey and Liechtenstein had highest click on the ad, Liechtenstein and ethopia had all people click on the ad.
+
+
+# 4. Bivariate Analysis
+
+``` {r}
+# Assigning the age column to the variable age
+# ---
+# 
+age <- advert$Age
+```
+
+``` {r}
+# Assigning the Clicked.on.Ad column to the variable adclicked
+# ---
+# 
+timespent<- advert$ Daily.Time.Spent.on.Site
+```
+
+### Using the cov() function to determine the covariance
+``` {r}
+#
+cov(age, timespent)
+```
+
+The covariance is a strong negative relatnship between Age and tme spent on sight.
+``` {r}
+# Using the cor() function to determine the correlation
+# ---
+#
+cor(age, timespent)
+```
+There is no relationship between age and time spent on site
+
+``` {r}
+# Getting correlation of the continuous variables
+cor(advert[,unlist(lapply(advert, is.numeric))])
+```
+
+### Correlation plot package
+``` {r}
+#install.packages("corrplot")
+library('corrplot')
+
+#Plotting a correlation matrix plot
+corrplot(cor(advert[,unlist(lapply(advert, is.numeric))]), type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+```
+
+``` {r}
+#install.packages("tidyverse")
+
+# Grouping the data by whether one clicked an ad or not
+group <- NA
+group[advert$Clicked.on.Ad == 1] <- 1
+group[advert$Clicked.on.Ad == 0] <- 2
+
+# Plotting a pair plot
+pairs(advert[,1:4], pch = 19, lower.panel = NULL, 
+      main="Pair Plots showing the relationships between variables",
+      col = c("red", "purple")[group])
+```
+
+``` {r}
+# Grouping by gender
+group1 <- NA
+group1[advert$Male == 1] <- 1
+group1[advert$Male == 0] <- 2
+
+# Setting the x and y variables
+x <- advert$Age
+y <- advert$Daily.Time.Spent.on.Site
+
+# Scatter plot
+plot(x, y, xlab = "Age", ylab = "Time Spent on Site", col = c("red", "purple")[group],
+     main="Scatter Plot showing age in relation to time spent on Site")
+legend("topleft",c("Clicked","Not clicked"), fill=c("red","purple"))
+```
+
+Those who are younger than 40 years were more likely to click on an ad. The less the time spent on a site, the more likely one would not click on an ad.
+
+``` {r}
+# Setting a new variable 
+n <- advert$Daily.Internet.Usage
+
+# Scatter plot
+plot(x, n, xlab = "Age", ylab = "Time Spent on Site", col = c("red", "purple")[group1],
+     main="Scatter Plot showing age in relation to Internet usage")
+legend("topleft",c("Male","Female"), fill=c("red","purple"))
+```
+Both genders are equally distributed in terms of time spent on site.
+
+
+### Getting individuals Who are likely to click on the advertisement.
+``` {r}
+#install.packages("dplyr")
+library(dplyr)
+
+
+head(advert)
+
+filter(advert, Age >= 40 & Daily.Time.Spent.on.Site < 60)
+```
+
+# 5. Conclusion
+
+
+1. 100 individuals who are most likely to click on the ad have been selected.
+2. Most individuals who clicked on the ad where below the age of 60.
+3. Users who spent less time online were more likely to click on the ad than people who spent more time.
+4. People from Australia, Ethopia, turkey and Liechtenstein had highest click on the ad
+
+# 6. Recommendation
+
+1.Client should focus on people who had a higher daily internet usage as they were likely to click on her ads.
+2. Client could also try reduce the price of the course, to attract more peoples
+
